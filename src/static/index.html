@@ -1,0 +1,69 @@
+﻿<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8" />
+  <title>2048 - Web</title>
+  <style>
+    body { font-family: Arial, sans-serif; padding:20px; }
+    .row { display:flex; }
+    .cell { width:60px; height:60px; border:1px solid #aaa; display:flex; align-items:center; justify-content:center; margin:4px; font-size:20px; background:#eee; }
+    #controls { margin-top:12px; }
+  </style>
+</head>
+<body>
+  <h1>2048 (Web)</h1>
+  <div id="score">Score: 0</div>
+  <div id="board"></div>
+  <div id="controls">
+    <button onclick="doMove('Up')">Up</button>
+    <button onclick="doMove('Left')">Left</button>
+    <button onclick="doMove('Right')">Right</button>
+    <button onclick="doMove('Down')">Down</button>
+    <button onclick="resetGame()">Restart</button>
+  </div>
+
+<script>
+async function fetchState() {
+  const res = await fetch('/api/state');
+  return res.json();
+}
+
+function render(state) {
+  document.getElementById('score').textContent = 'Score: ' + state.score;
+  const board = document.getElementById('board');
+  board.innerHTML = '';
+  state.board.forEach(row => {
+    const r = document.createElement('div');
+    r.className = 'row';
+    row.forEach(v => {
+      const c = document.createElement('div');
+      c.className = 'cell';
+      c.textContent = v === 0 ? '' : v;
+      r.appendChild(c);
+    });
+    board.appendChild(r);
+  });
+  if (state.game_over) alert(state.won ? 'You won!' : 'Game over');
+}
+
+async function doMove(direction) {
+  await fetch('/api/move', { method: 'POST', headers: {'Content-Type':'application/json'}, body: JSON.stringify({direction}) });
+  const s = await fetchState();
+  render(s);
+}
+
+async function resetGame() {
+  await fetch('/api/reset', { method: 'POST' });
+  const s = await fetchState();
+  render(s);
+}
+
+document.addEventListener('keydown', e => {
+  const map = { ArrowUp:'Up', ArrowDown:'Down', ArrowLeft:'Left', ArrowRight:'Right' };
+  if (map[e.key]) doMove(map[e.key]);
+});
+
+(async () => { render(await fetchState()); })();
+</script>
+</body>
+</html>

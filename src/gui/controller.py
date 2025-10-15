@@ -1,4 +1,3 @@
-# ...existing code...
 from tkinter import Frame, Label
 from game import Game
 
@@ -45,4 +44,3 @@ class GameController:
     def restart_game(self):
         self.game.reset()
         self.update_board()
-# ...existing code...
